@@ -3,7 +3,6 @@ import sys
 import json
 import hashlib
 import time
-import threading
 from flask import Flask, jsonify, send_from_directory, request
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
