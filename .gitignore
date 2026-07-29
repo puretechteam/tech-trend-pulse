@@ -1,0 +1,14 @@
+__pycache__/
+*.exe
+build/
+dist/
+.env*
+*.pyc
+venv/
+.venv/
+.DS_Store
+Thumbs.db
+*.log
+*.egg-info/
+cache/
+*.json.sha256

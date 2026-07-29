@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Trend Pulse</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Tech Trend Pulse</h1>
+    <div class="tab-bar">
+      <button class="tab active" data-platform="github">GitHub</button>
+      <button class="tab" data-platform="npm">npm</button>
+      <button class="tab" data-platform="pypi">PyPI</button>
+    </div>
+    <span id="stale-indicator" class="stale-indicator" style="display:none">Data may be stale</span>
+  </header>
+  <div id="error-banner" class="error-banner"></div>
+  <main>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search technologies...">
+      <select id="category-filter">
+        <option value="">All Categories</option>
+      </select>
+      <select id="status-filter">
+        <option value="">All Status</option>
+        <option value="rising">Rising</option>
+        <option value="stable">Stable</option>
+        <option value="declining">Declining</option>
+      </select>
+      <button id="chart-type-toggle" title="Toggle chart type">Line Chart</button>
+      <button id="reset-filters">Reset</button>
+    </div>
+    <div class="dashboard-layout">
+      <div class="chart-panel">
+        <h2>Trend Chart</h2>
+        <canvas id="trend-chart"></canvas>
+      </div>
+      <div class="list-panel">
+        <h2>Top Technologies</h2>
+        <ul id="tech-list"></ul>
+      </div>
+    </div>
+    <div id="detail-panel" class="detail-panel hidden">
+      <button id="close-detail" class="close-btn">&times;</button>
+      <h2 id="detail-name"></h2>
+      <div class="detail-section">
+        <span id="detail-category" class="detail-category"></span>
+        <span id="detail-platform" class="detail-platform"></span>
+      </div>
+      <p id="detail-description" class="detail-description"></p>
+      <div class="detail-section">
+        <h3>Metrics</h3>
+        <div id="detail-metrics" class="detail-metrics"></div>
+      </div>
+      <div class="detail-section">
+        <h3>Status</h3>
+        <p id="detail-status" class="detail-status"></p>
+        <div id="detail-trend-direction" class="detail-trend-direction"></div>
+      </div>
+      <div class="detail-section">
+        <h3>Trend Sparkline</h3>
+        <canvas id="detail-sparkline" class="detail-sparkline"></canvas>
+      </div>
+      <div class="detail-section">
+        <h3>Trend Chart</h3>
+        <canvas id="detail-trend-chart" class="detail-chart"></canvas>
+      </div>
+      <div class="detail-section">
+        <h3>Tags</h3>
+        <div id="detail-tags" class="detail-tags"></div>
+      </div>
+      <div class="detail-section">
+        <h3>Platform Data</h3>
+        <div id="detail-platform-data" class="detail-platform-data"></div>
+      </div>
+      <div class="detail-section">
+        <h3>Related Technologies</h3>
+        <div id="detail-related" class="detail-related"></div>
+      </div>
+    </div>
+  </main>
+  <script src="/static/js/filters.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+  <script src="/static/js/charts.js"></script>
+</body>
+</html>
