@@ -40,6 +40,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
+      - name: Generate checksum
+        run: python -c "import hashlib; print(hashlib.sha256(open('data/trends.json','rb').read()).hexdigest())" > data/trends.json.sha256
       - name: Run tests
         run: pytest
 
