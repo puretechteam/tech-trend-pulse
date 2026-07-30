@@ -3,7 +3,9 @@ import os
 
 from app import compute_checksum, validate_data_integrity
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+DATA_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"
+)
 TRENDS_FILE = os.path.join(DATA_DIR, "trends.json")
 CHECKSUM_FILE = os.path.join(DATA_DIR, "trends.json.sha256")
 
@@ -17,7 +19,7 @@ def test_trends_json_exists():
 
 
 def test_trends_json_loadable():
-    with open(TRENDS_FILE, "r", encoding="utf-8") as f:
+    with open(TRENDS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     assert isinstance(data, dict)
     assert len(data) > 0
@@ -42,7 +44,7 @@ def test_checksum_verification():
     assert os.path.isfile(TRENDS_FILE), f"trends.json not found: {TRENDS_FILE}"
     assert os.path.isfile(CHECKSUM_FILE), f"Checksum file not found: {CHECKSUM_FILE}"
 
-    with open(CHECKSUM_FILE, "r") as f:
+    with open(CHECKSUM_FILE) as f:
         expected_hash = f.read().strip()
 
     actual_hash = compute_checksum(TRENDS_FILE)

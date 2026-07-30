@@ -78,7 +78,7 @@ def validate_data_integrity() -> list[str]:
         return issues
 
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         issues.append(f"Corrupted JSON in trends.json: {e}")
@@ -99,7 +99,7 @@ def validate_data_integrity() -> list[str]:
 
     checksum_file = os.path.join(data_path, "trends.json.sha256")
     if os.path.exists(checksum_file):
-        with open(checksum_file, "r") as f:
+        with open(checksum_file) as f:
             expected_hash = f.read().strip()
         actual_hash = compute_checksum(filepath)
         if actual_hash != expected_hash:
@@ -161,7 +161,7 @@ def api_data() -> tuple[dict[str, Any], int]:
     data_path = get_data_path()
     trends_file = os.path.join(data_path, "trends.json")
     try:
-        with open(trends_file, "r", encoding="utf-8") as f:
+        with open(trends_file, encoding="utf-8") as f:
             data = json.load(f)
         return jsonify(data)
     except Exception as e:
@@ -175,9 +175,9 @@ def api_platforms() -> tuple[dict[str, Any], int]:
     data_path = get_data_path()
     trends_file = os.path.join(data_path, "trends.json")
     try:
-        with open(trends_file, "r", encoding="utf-8") as f:
+        with open(trends_file, encoding="utf-8") as f:
             data = json.load(f)
-        platforms = sorted(list(data.keys()))
+        platforms = sorted(data.keys())
         return jsonify({"platforms": platforms})
     except Exception as e:
         logger.error("Failed to serve /api/platforms: %s", e)
@@ -194,7 +194,7 @@ def api_bundled_data() -> tuple[dict[str, Any], int]:
     data_path = get_data_path()
     trends_file = os.path.join(data_path, "trends.json")
     try:
-        with open(trends_file, "r", encoding="utf-8") as f:
+        with open(trends_file, encoding="utf-8") as f:
             data = json.load(f)
         return jsonify(data)
     except Exception as e:
@@ -244,7 +244,7 @@ def fetch_data(platform: str) -> tuple[dict[str, Any], int]:
         logger.warning("Live fetch failed for %s: %s", platform, e)
         if os.path.exists(cache_file):
             try:
-                with open(cache_file, "r", encoding="utf-8") as f:
+                with open(cache_file, encoding="utf-8") as f:
                     cached = json.load(f)
                 return jsonify({"source": "cache", "data": cached.get("raw", {}), "stale": True})
             except Exception:
