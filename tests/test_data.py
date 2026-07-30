@@ -1,8 +1,6 @@
 import json
 import os
 
-import pytest
-
 from app import compute_checksum, validate_data_integrity
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")

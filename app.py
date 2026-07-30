@@ -4,15 +4,15 @@ Provides API endpoints for serving bundled trend data, fetching live data
 from public APIs, checking data integrity, and serving the static frontend.
 """
 
+import hashlib
+import json
 import logging
 import os
 import sys
-import json
-import hashlib
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, request, send_from_directory
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -60,7 +60,7 @@ def compute_checksum(filepath: str) -> str:
     return h.hexdigest()
 
 
-def validate_data_integrity() -> List[str]:
+def validate_data_integrity() -> list[str]:
     """Validate the integrity of the bundled trends.json data file.
 
     Reads trends.json once and validates all platforms against the schema,
@@ -70,7 +70,7 @@ def validate_data_integrity() -> List[str]:
         A list of issue strings found during validation.
     """
     data_path = get_data_path()
-    issues: List[str] = []
+    issues: list[str] = []
     filepath = os.path.join(data_path, "trends.json")
 
     if not os.path.exists(filepath):
@@ -156,7 +156,7 @@ def serve_static(filename: str) -> str:
 
 
 @app.route("/api/data")
-def api_data() -> Tuple[Dict[str, Any], int]:
+def api_data() -> tuple[dict[str, Any], int]:
     """Serve the bundled trends.json data as JSON."""
     data_path = get_data_path()
     trends_file = os.path.join(data_path, "trends.json")
@@ -170,7 +170,7 @@ def api_data() -> Tuple[Dict[str, Any], int]:
 
 
 @app.route("/api/platforms")
-def api_platforms() -> Tuple[Dict[str, Any], int]:
+def api_platforms() -> tuple[dict[str, Any], int]:
     """Return the list of available platforms from the bundled data."""
     data_path = get_data_path()
     trends_file = os.path.join(data_path, "trends.json")
@@ -185,7 +185,7 @@ def api_platforms() -> Tuple[Dict[str, Any], int]:
 
 
 @app.route("/api/bundled-data")
-def api_bundled_data() -> Tuple[Dict[str, Any], int]:
+def api_bundled_data() -> tuple[dict[str, Any], int]:
     """Serve the bundled trends.json file directly for fallback use.
 
     This endpoint provides the same data as /api/data but is intended
@@ -203,7 +203,7 @@ def api_bundled_data() -> Tuple[Dict[str, Any], int]:
 
 
 @app.route("/api/fetch/<platform>")
-def fetch_data(platform: str) -> Tuple[Dict[str, Any], int]:
+def fetch_data(platform: str) -> tuple[dict[str, Any], int]:
     """Fetch live data from a public API for the given platform.
 
     Args:
@@ -253,14 +253,14 @@ def fetch_data(platform: str) -> Tuple[Dict[str, Any], int]:
 
 
 @app.route("/api/check-integrity")
-def api_check_integrity() -> Tuple[Dict[str, Any], int]:
+def api_check_integrity() -> tuple[dict[str, Any], int]:
     """Check the integrity of the bundled data and return any issues found."""
     issues = validate_data_integrity()
     return jsonify({"integrity_ok": len(issues) == 0, "issues": issues})
 
 
 @app.errorhandler(404)
-def not_found(e: Any) -> Tuple[Dict[str, str], int]:
+def not_found(e: Any) -> tuple[dict[str, str], int]:
     """Handle 404 errors with a JSON response."""
     if request.path.startswith("/static/"):
         return jsonify({"error": "Not found"}), 404
@@ -268,7 +268,7 @@ def not_found(e: Any) -> Tuple[Dict[str, str], int]:
 
 
 @app.errorhandler(500)
-def server_error(e: Any) -> Tuple[Dict[str, str], int]:
+def server_error(e: Any) -> tuple[dict[str, str], int]:
     """Handle 500 errors with a JSON response."""
     return jsonify({"error": "Internal server error"}), 500
 
