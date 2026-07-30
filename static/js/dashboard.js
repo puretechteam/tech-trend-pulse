@@ -31,6 +31,19 @@ const TECH_COLORS = [
   '#ffa15a'
 ];
 
+function escapeHtml(str) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return String(str).replace(/[&<>"']/g, m => map[m]);
+}
+
+function debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 function getTechColor(name) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -41,6 +54,8 @@ function getTechColor(name) {
 
 async function init() {
   let usedCachedData = false;
+  const loadingEl = document.getElementById('loading-overlay');
+  if (loadingEl) loadingEl.style.display = 'flex';
   try {
     const response = await fetch('/api/data');
     allData = await response.json();
@@ -48,7 +63,7 @@ async function init() {
   } catch (err) {
     console.error('Failed to fetch data from server, using bundled data:', err);
     try {
-      const fallback = await fetch('/static/data/trends.json');
+      const fallback = await fetch('/api/bundled-data');
       allData = await fallback.json();
       window.allData = allData;
       usedCachedData = true;
@@ -59,6 +74,8 @@ async function init() {
       usedCachedData = true;
     }
   }
+
+  if (loadingEl) loadingEl.style.display = 'none';
 
   if (usedCachedData) {
     const staleEl = document.getElementById('stale-indicator');
@@ -88,15 +105,26 @@ function renderPlatform(platform) {
   window.currentPlatform = currentPlatform;
   const data = allData[platform] || [];
   const listEl = document.getElementById('tech-list');
+  if (!listEl) return;
   listEl.innerHTML = '';
 
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<li class="empty-state">No data available for this platform</li>';
+    return;
+  }
+
   const sorted = [...data].sort((a, b) => {
-    const avgA = a.trend_data.reduce((s, v) => s + v, 0) / a.trend_data.length;
-    const avgB = b.trend_data.reduce((s, v) => s + v, 0) / b.trend_data.length;
+    const avgA = (a.trend_data && a.trend_data.length > 0)
+      ? a.trend_data.reduce((s, v) => s + v, 0) / a.trend_data.length
+      : 0;
+    const avgB = (b.trend_data && b.trend_data.length > 0)
+      ? b.trend_data.reduce((s, v) => s + v, 0) / b.trend_data.length
+      : 0;
     return avgB - avgA;
   });
 
   sorted.forEach(tech => {
+    if (!tech || !tech.trend_data || !Array.isArray(tech.trend_data)) return;
     const li = document.createElement('li');
     if (selectedTech && selectedTech.name === tech.name) {
       li.classList.add('selected');
@@ -109,7 +137,7 @@ function renderPlatform(platform) {
     li.innerHTML = `
       <span class="tech-name">
         <span class="status-dot status-${tech.status}"></span>
-        ${tech.name}
+        ${escapeHtml(tech.name)}
       </span>
       <span class="tech-meta">
         <span class="trend-arrow ${dirClass}">${arrow}</span>
@@ -128,7 +156,24 @@ function renderPlatform(platform) {
 }
 
 function renderSparkline(container, data, direction, techName) {
-  if (!data || data.length < 2) {
+  if (!container) return;
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 80;
+    canvas.height = 24;
+    canvas.className = 'sparkline';
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = direction === 'up' ? '#00ff88' : direction === 'down' ? '#ff4444' : '#ffcc00';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 12);
+    ctx.lineTo(80, 12);
+    ctx.stroke();
+    container.appendChild(canvas);
+    return;
+  }
+
+  if (data.length < 2) {
     const canvas = document.createElement('canvas');
     canvas.width = 80;
     canvas.height = 24;
@@ -283,7 +328,9 @@ function selectTech(tech) {
   renderTrendDirection(document.getElementById('detail-trend-direction'), tech);
 
   const tagsEl = document.getElementById('detail-tags');
-  tagsEl.innerHTML = tech.tags.map(t => `<span class="tag">${t}</span>`).join('');
+  if (tagsEl && Array.isArray(tech.tags)) {
+    tagsEl.innerHTML = tech.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+  }
 
   renderDetailChart(tech);
 
@@ -346,12 +393,26 @@ function renderDetailChart(tech) {
 function renderDetailSparkline(tech) {
   const canvas = document.getElementById('detail-sparkline');
   if (!canvas) return;
+  const data = tech.trend_data;
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    const ctx = canvas.getContext('2d');
+    const container = canvas.parentElement;
+    canvas.width = container.clientWidth || 400;
+    canvas.height = 80;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#ffcc00';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 40);
+    ctx.lineTo(canvas.width, 40);
+    ctx.stroke();
+    return;
+  }
   const ctx = canvas.getContext('2d');
   const container = canvas.parentElement;
   canvas.width = container.clientWidth || 400;
   canvas.height = 80;
 
-  const data = tech.trend_data;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
@@ -394,8 +455,8 @@ function renderPlatformData(container, tech) {
   }
   const rows = Object.entries(pd).map(([key, value]) => {
     const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    const formatted = typeof value === 'number' ? value.toLocaleString() : value;
-    return `<div class="platform-data-row"><span class="platform-data-label">${label}</span><span class="platform-data-value">${formatted}</span></div>`;
+    const formatted = typeof value === 'number' ? value.toLocaleString() : escapeHtml(String(value));
+    return `<div class="platform-data-row"><span class="platform-data-label">${escapeHtml(label)}</span><span class="platform-data-value">${formatted}</span></div>`;
   }).join('');
   container.innerHTML = rows;
 }
@@ -409,9 +470,9 @@ function renderRelatedTechs(container, tech) {
   container.innerHTML = related.map(name => {
     const relatedTech = findTechByName(name);
     if (relatedTech) {
-      return `<span class="related-tag" data-tech-name="${name}">${name}</span>`;
+      return `<span class="related-tag" data-tech-name="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
     }
-    return `<span class="related-tag">${name}</span>`;
+    return `<span class="related-tag">${escapeHtml(name)}</span>`;
   }).join('');
 
   container.querySelectorAll('.related-tag').forEach(tag => {
@@ -455,7 +516,10 @@ function setupTabListeners() {
 }
 
 function setupSearchListener() {
-  document.getElementById('search').addEventListener('input', applyFilters);
+  const searchEl = document.getElementById('search');
+  if (searchEl) {
+    searchEl.addEventListener('input', debounce(applyFilters, 300));
+  }
 }
 
 function setupFilterListeners() {
@@ -501,15 +565,26 @@ function applyFilters() {
 
 function renderFilteredList(filtered) {
   const listEl = document.getElementById('tech-list');
+  if (!listEl) return;
   listEl.innerHTML = '';
 
+  if (!filtered || filtered.length === 0) {
+    listEl.innerHTML = '<li class="empty-state">No technologies match your filters</li>';
+    return;
+  }
+
   const sorted = [...filtered].sort((a, b) => {
-    const avgA = a.trend_data.reduce((s, v) => s + v, 0) / a.trend_data.length;
-    const avgB = b.trend_data.reduce((s, v) => s + v, 0) / b.trend_data.length;
+    const avgA = (a.trend_data && a.trend_data.length > 0)
+      ? a.trend_data.reduce((s, v) => s + v, 0) / a.trend_data.length
+      : 0;
+    const avgB = (b.trend_data && b.trend_data.length > 0)
+      ? b.trend_data.reduce((s, v) => s + v, 0) / b.trend_data.length
+      : 0;
     return avgB - avgA;
   });
 
   sorted.forEach(tech => {
+    if (!tech || !tech.trend_data || !Array.isArray(tech.trend_data)) return;
     const li = document.createElement('li');
     if (selectedTech && selectedTech.name === tech.name) {
       li.classList.add('selected');
@@ -522,7 +597,7 @@ function renderFilteredList(filtered) {
     li.innerHTML = `
       <span class="tech-name">
         <span class="status-dot status-${tech.status}"></span>
-        ${tech.name}
+        ${escapeHtml(tech.name)}
       </span>
       <span class="tech-meta">
         <span class="trend-arrow ${dirClass}">${arrow}</span>
@@ -539,9 +614,15 @@ function renderFilteredList(filtered) {
 }
 
 function populateFilters(platforms) {
-  const categories = new Set();
-  allData[currentPlatform].forEach(tech => categories.add(tech.category));
   const select = document.getElementById('category-filter');
+  if (!select) return;
+  const categories = new Set();
+  const data = allData[currentPlatform];
+  if (data && Array.isArray(data)) {
+    data.forEach(tech => {
+      if (tech && tech.category) categories.add(tech.category);
+    });
+  }
   select.innerHTML = '<option value="">All Categories</option>';
   categories.forEach(cat => {
     const opt = document.createElement('option');

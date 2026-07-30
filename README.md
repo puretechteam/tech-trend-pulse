@@ -1,6 +1,82 @@
 # Tech Trend Pulse
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Contributing](https://img.shields.io/badge/Contributing-Guidelines-green.svg)](CONTRIBUTING.md)
+[![Security](https://img.shields.io/badge/Security-Policy-red.svg)](SECURITY.md)
+
 A desktop web application that visualizes technology trend data across GitHub, npm, and PyPI platforms. Built with Flask and Chart.js, it provides interactive trend charts, filtering, and a detail panel for exploring technology adoption trends over time.
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute, set up your development environment, and submit changes.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Security
+
+If you discover a security vulnerability, please report it responsibly. Please see [SECURITY.md](SECURITY.md) for our security policy and reporting guidelines. Do not open public issues for security vulnerabilities.
+
+## Development
+
+### Prerequisites
+
+- Python 3.12+
+- pip
+
+### Setup
+
+1. Install dependencies:
+   ```
+   make install
+   ```
+   Or manually:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### Running the App
+
+```
+make run
+```
+
+### Building the Executable
+
+```
+make build
+```
+
+### Running Tests
+
+```
+make test
+```
+
+### Linting
+
+```
+make lint
+```
+
+### Formatting
+
+```
+make format
+```
+
+### Docker
+
+```
+make docker-run
+```
+Or:
+```
+docker-compose up
+```
+
+> **Note:** The Makefile is the preferred build tool and provides cross-platform support for all development workflows.
 
 ## Features
 
@@ -23,7 +99,7 @@ A desktop web application that visualizes technology trend data across GitHub, n
 
 ## Changes Made
 
-1. **Fixed script loading order** in `static/index.html` — `dashboard.js` now loads before `charts.js` (order: `filters.js`, `dashboard.js`, `charts.js`) to ensure dependencies are available at runtime.
+1. **Fixed script loading order** in `static/index.html` — `dashboard.js` now loads before `charts.js` to ensure dependencies are available at runtime.
 2. **Per-technology graph colors** in `static/js/charts.js` and `static/js/dashboard.js` — Replaced status-based colors (green/yellow/red) with a consistent 15-color palette assigned by hashing each technology's name. Colors persist across chart type switches (line ↔ bar).
 3. **Enhanced detail panel** in `static/js/dashboard.js` — Added trend slope, percentile rank, and a trend sparkline mini-chart to the detail view.
 4. **Improved UI/UX** in `static/css/style.css` — Refined card layouts, spacing, metric grid (3-column), hover effects on metric cards and related tags, gradient trend bars, and responsive design for mobile.
@@ -34,28 +110,55 @@ A desktop web application that visualizes technology trend data across GitHub, n
 
 1. Install dependencies:
    ```
-   dependencies.bat
-   ```
-   Or manually:
-   ```
-   pip install -r requirements.txt
+   make install
    ```
 
 2. Run the Flask development server:
    ```
-   python app.py
+   make run
    ```
 
 3. Open http://localhost:5000 in your browser.
 
+### Development Dependencies
+
+For development and testing, install:
+```
+make install-dev
+```
+
 ### PyInstaller Build
 
 1. Ensure dependencies are installed (see above).
-2. Run the build script:
+
+2. Run the build:
    ```
-   build.bat
+   make build
    ```
+
 3. The built executable will be in `dist/tech-trend-pulse-<version>/`.
+
+## Docker
+
+### Building the Image
+
+```
+docker build -t tech-trend-pulse .
+```
+
+### Running the Container
+
+```
+docker run -p 5000:5000 tech-trend-pulse
+```
+
+### Using Docker Compose
+
+```
+docker-compose up -d
+```
+
+This starts the Flask app in development mode with source code mounted for live reloading.
 
 ## Data Sources
 
@@ -70,6 +173,14 @@ A desktop web application that visualizes technology trend data across GitHub, n
 - Configuration (such as API endpoints) can be set via environment variables or config files excluded from the repo
 - The app validates JSON data integrity on startup and alerts if corruption is detected
 
+## Roadmap
+
+- Add sentiment analysis from social media sources
+- Support for custom data source plugins
+- Predictive trend forecasting with ML models
+- Team collaboration features for shared dashboards
+- API access for programmatic trend data retrieval
+
 ## Project Structure
 
 ```
@@ -77,7 +188,9 @@ tech-trend-pulse/
 ├── app.py              # Flask backend with API endpoints
 ├── build.bat           # PyInstaller build script
 ├── dependencies.bat    # Dependency installation script
-├── requirements.txt    # Python dependencies
+├── requirements.txt        # Runtime dependencies
+├── requirements-build.txt  # Build-time dependencies (PyInstaller)
+├── requirements-dev.txt    # Development dependencies
 ├── VERSION             # Version number
 ├── .gitignore          # Git ignore rules
 ├── README.md           # This file
@@ -91,6 +204,5 @@ tech-trend-pulse/
     │   └── style.css   # Stylesheet with dark theme and enhanced layouts
     └── js/
         ├── dashboard.js  # Main application logic with enhanced detail panel and per-tech colors
-        ├── charts.js     # Chart.js visualization with per-technology color palette
-        └── filters.js    # Search and filter logic with tag-based search
+        └── charts.js     # Chart.js visualization with per-technology color palette
 ```
