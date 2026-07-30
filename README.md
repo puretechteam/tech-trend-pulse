@@ -78,6 +78,22 @@ docker-compose up
 
 > **Note:** The Makefile is the preferred build tool and provides cross-platform support for all development workflows.
 
+## Testing
+
+Run the test suite with either `make test` or `pytest` directly:
+
+```
+make test
+```
+
+Or:
+
+```
+pytest
+```
+
+The tests use a Flask test client configured in testing mode. Test files are located in the `tests/` directory and cover the application routes, data loading, schema validation, and checksum verification.
+
 ## Features
 
 - **Interactive Trend Charts** — Chart.js line and bar charts showing 12-month trend data for technologies, with toggle between chart types
