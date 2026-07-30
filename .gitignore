@@ -11,4 +11,3 @@ Thumbs.db
 *.log
 *.egg-info/
 cache/
-*.json.sha256
